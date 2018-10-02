@@ -8,34 +8,43 @@ sudo sh prepare.sh
 
 # Testing
 
-## Test with quantum links:
+## Tests with quantum links:
 ```bash
 mn --custom=mininet-tools/QKCustom.py --link=qk --topo=tree,depth=2,fanout=3
 ```
 
-## Test with ryu:
+## Tests with ryu:
 
-### Running mininet topology
+### Running mininet topology (in first terminal/screen)
 ```bash
 sudo mn --custom=mininet-tools/topo_2sw-2host.py --topo mytopo --mac --controller remote --switch ovs
 ```
 
-### Running ryu application
+### Running ryu application (in second terminal/screen)
 ```bash
 sudo ryu-manager mininet-tools/rest_forward.py
 ```
 
-### You can switch channels with RestAPI:
-#### For raw channel:
+### Module RestAPI (from third terminal/screen):
+#### Switch to raw channel:
 ```bash
 curl -X GET http://localhost:8080/channel/1/1
 ```
-#### For quantum channel:
+#### Switch to quantum channel:
 ```bash
 curl -X GET http://localhost:8080/channel/1/2
 ```
 
-### Yuo can obtain statistics:
+#### You can check packets and encryption of raw channel:
+```bash
+sudo tcpdump -i lo udp port 3338 -vv -X
+```
+#### You can check packets and encryption of quantum channel:
+```bash
+sudo tcpdump -i lo udp port 3339 -vv -X
+```
+
+#### You can obtain statistics:
 ```bash
 curl -X GET http://localhost:8080/status
 curl -X GET http://localhost:8080/channels

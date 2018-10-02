@@ -11,10 +11,9 @@ enabled=0
 gpgcheck=1
 gpgkey=http://downloads.naulinux.ru/pub/NauLinux/RPM-GPG-KEY-linux-ink
 EOL
-yum install -y nano epel-release net-tools
+yum install -y nano epel-release
 yum install --enablerepo=naulinux-extras -y openvswitch mininet ryu ctapudp keyworker
 systemctl restart openvswitch
-yum install -y python2-pip
-pip install -r requirements.txt
+yum install -y python2-pip net-tools tcpdump
 pip install requests urllib3 pyOpenSSL --force --upgrade
 mkdir -p /opt/db1
