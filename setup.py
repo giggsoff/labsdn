@@ -14,7 +14,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'blockchain-alchemy'
+NAME = 'mininet-tools'
 DESCRIPTION = ''
 URL = 'https://github.com/BAlchemyLab/bal'
 EMAIL = 'oleg.sadov@gmail.com'

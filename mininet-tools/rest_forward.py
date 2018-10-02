@@ -17,8 +17,12 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, DEAD_DISPATCHER
 from ryu.lib import hub
 
-rules_default = 'channels.json'
-rules = 'channels.json'
+current_folder = os.path.dirname(os.path.abspath(__file__))
+channels_file = os.path.join(current_folder, 'channels.json')
+
+rules_default = channels_file
+rules = channels_file
+
 LOG = logging.getLogger(__name__)
 
 
