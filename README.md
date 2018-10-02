@@ -1,39 +1,43 @@
-## Installation
+# Installation
 
-1. Make sure [Python](https://www.python.org/downloads/) 2 or 3 is installed. 
-
-
-2. Install requirements.
+Only for RHEL 7, CentOS 7, ScientificLinux 7 and so on...
 
 ```bash
-$ sudo sh prepare.sh
+sudo sh prepare.sh
 ``` 
 
-## Testing
+# Testing
 
-### Test with quantum links:
+## Test with quantum links:
 ```bash
-$ mn --custom=mininet-tools/QKCustom.py --link=qk --topo=tree,depth=2,fanout=3
+mn --custom=mininet-tools/QKCustom.py --link=qk --topo=tree,depth=2,fanout=3
 ```
 
-### Test with ryu:
+## Test with ryu:
 
+### Running mininet topology
 ```bash
-$ sudo mn --custom=mininet-tools/topo_2sw-2host.py --topo mytopo --mac --controller remote --switch ovs
+sudo mn --custom=mininet-tools/topo_2sw-2host.py --topo mytopo --mac --controller remote --switch ovs
 ```
 
-Go to blockchain-alchemy directory and start ryu-manager:
-
+### Running ryu application
 ```bash
-$ sudo ryu-manager mininet-tools/rest_forward.py
+sudo ryu-manager mininet-tools/rest_forward.py
 ```
 
-You can switch channels with RestAPI:
-For raw channel:
+### You can switch channels with RestAPI:
+#### For raw channel:
 ```bash
-$ curl -X GET http://localhost:8080/channel/1/1
+curl -X GET http://localhost:8080/channel/1/1
 ```
-For quantum channel:
+#### For quantum channel:
 ```bash
-$ curl -X GET http://localhost:8080/channel/1/2
+curl -X GET http://localhost:8080/channel/1/2
+```
+
+### Yuo can obtain statistics:
+```bash
+curl -X GET http://localhost:8080/status
+curl -X GET http://localhost:8080/channels
+curl -X GET http://localhost:8080/statistics
 ```
