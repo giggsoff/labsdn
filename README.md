@@ -9,12 +9,14 @@
 $ pip install -r requirements.txt
 ``` 
 
-3. Test with quantum links:**
+## Testing
+
+### Test with quantum links:
 ```bash
 mn --custom=mininet-tools/QKCustom.py --link=qk --topo=tree,depth=2,fanout=3
 ```
 
-4. Test with ryu:
+### Test with ryu:
 
 ```bash
 sudo mn --custom=mininet-tools/topo_2sw-2host.py --topo mytopo --mac --controller remote --switch ovs
