@@ -13,6 +13,9 @@ from ryu.exception import OFPUnknownVersion
 from ryu.lib import dpid as dpid_lib
 from ryu.lib import ofctl_v1_3
 from ryu.ofproto import ofproto_v1_3, ofproto_v1_3_parser
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, DEAD_DISPATCHER
+from ryu.lib import hub
 
 rules_default = 'channels.json'
 rules = 'channels.json'
@@ -20,6 +23,7 @@ LOG = logging.getLogger(__name__)
 
 
 class ForwardRest(app_manager.RyuApp):
+    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
     _CONTEXTS = {'dpset': dpset.DPSet,
                  'wsgi': WSGIApplication}
 
@@ -28,6 +32,7 @@ class ForwardRest(app_manager.RyuApp):
         self.switches = {}
         dpset = kwargs['dpset']
         wsgi = kwargs['wsgi']
+        self.datapaths = {}
         self.data = {}
         self.waiters = {}
         self.data['dpset'] = dpset
@@ -35,6 +40,7 @@ class ForwardRest(app_manager.RyuApp):
         ForwardController.set_logger(self.logger)
         wsgi.registory['ForwardController'] = self.data
         wsgi.register(ForwardController, self.data)
+        self.monitor_thread = hub.spawn(self._monitor)
 
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, ev):
@@ -43,6 +49,54 @@ class ForwardRest(app_manager.RyuApp):
         else:
             ForwardController.unregist_ofs(ev.dp)
 
+    @set_ev_cls(ofp_event.EventOFPStateChange,
+                [MAIN_DISPATCHER, DEAD_DISPATCHER])
+    def _state_change_handler(self, ev):
+        datapath = ev.datapath
+        if ev.state == MAIN_DISPATCHER:
+            if datapath.id not in self.datapaths:
+                self.logger.debug('register datapath: %016x', datapath.id)
+                self.datapaths[datapath.id] = datapath
+        elif ev.state == DEAD_DISPATCHER:
+            if datapath.id in self.datapaths:
+                self.logger.debug('unregister datapath: %016x', datapath.id)
+                del self.datapaths[datapath.id]
+
+    def _monitor(self):
+        while True:
+            for dp in self.datapaths.values():
+                self._request_stats(dp)
+            hub.sleep(10)
+
+    def _request_stats(self, datapath):
+        self.logger.debug('send stats request: %016x', datapath.id)
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+
+        req = parser.OFPFlowStatsRequest(datapath)
+        datapath.send_msg(req)
+
+        req = parser.OFPPortStatsRequest(datapath, 0, ofproto.OFPP_ANY)
+        datapath.send_msg(req)
+
+
+    @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
+    def _flow_stats_reply_handler(self, ev):
+        body = ev.msg.body
+
+        self.logger.info('datapath         '
+                         'in-port  eth-dst           '
+                         'out-port packets  bytes')
+        self.logger.info('---------------- '
+                         '-------- ----------------- '
+                         '-------- -------- --------')
+        for stat in sorted([flow for flow in body if flow.priority == 1000]):
+            self.logger.info('%016x %8x %17s %8x %8d %8d',
+                             ev.msg.datapath.id,
+                             stat.match['in_port'], 0,
+                             0,
+                             stat.packet_count, stat.byte_count)
+            ForwardController._STATS[ev.msg.datapath.id] = stat.packet_count
 
 class ForwardOfsList(dict):
     def __init__(self):
@@ -71,7 +125,7 @@ class ForwardOfsList(dict):
 class ForwardController(ControllerBase):
     _OFS_LIST = ForwardOfsList()
     _LOGGER = None
-
+    _STATS = {}
     def __init__(self, req, link, data, **config):
         super(ForwardController, self).__init__(req, link, data, **config)
         self.name = self.__class__.__name__
@@ -129,6 +183,22 @@ class ForwardController(ControllerBase):
             ForwardController._LOGGER.info('dpid=%s: Forwarding module is disconnected.',
                                            dpid_lib.dpid_to_str(dp.id))
 
+
+    @route('status', '/status', methods=['GET'])
+    def return_status(self, req, **kwargs):
+        return Response(content_type='application/text', body='1')
+
+    @route('channels', '/channels', methods=['GET'])
+    def return_channels(self, req, **kwargs):
+        return Response(content_type='application/text', body=str(len(self.channels.values())))
+
+    @route('statistics', '/statistics', methods=['GET'])
+    def return_statistics(self, req, **kwargs):
+        result = 0
+        for c in self._STATS.values():
+            result+=c
+        return Response(content_type='application/text', body=str(result))
+
     @route('activate', '/activate', methods=['GET'])
     def activ_rules(self, req, **kwargs):
         mode = 'add'
@@ -161,7 +231,7 @@ class ForwardController(ControllerBase):
         f.write(json.dumps({"ovs": self.ovs, "channels": self.channels}))
         f.close()
         return Response(content_type='application/json', body=body)
-    
+
     @route('ovs', '/ovs', methods=['POST'])
     def set_ovs(self, req, **kwargs):
         jsonconf = json.loads(req.body)
