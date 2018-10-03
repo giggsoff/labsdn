@@ -10,7 +10,7 @@ sudo sh prepare.sh
 
 ## Tests with quantum links:
 ```bash
-mn --custom=mininet-tools/QKCustom.py --link=qk --topo=tree,depth=2,fanout=3
+sudo mn --custom=mininet-tools/QKCustom.py --link=qk --topo=tree,depth=2,fanout=3
 ```
 
 ## Tests with ryu:
