@@ -14,6 +14,6 @@ EOL
 yum install -y nano epel-release
 yum install --enablerepo=naulinux-extras -y openvswitch mininet ryu ctapudp keyworker
 systemctl restart openvswitch
-yum install -y python2-pip net-tools tcpdump
+yum install -y python2-pip net-tools tcpdump iperf3
 pip install requests urllib3 pyOpenSSL --force --upgrade
 mkdir -p /opt/db1
