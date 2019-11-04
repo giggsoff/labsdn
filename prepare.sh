@@ -6,7 +6,7 @@ fi
 cat >/etc/yum.repos.d/naulinux-extras.repo <<EOL
 [naulinux-extras]
 name=NauLinux Extras
-baseurl=http://downloads.naulinux.ru/pub/NauLinux/7/\$basearch/Extras/RPMS/
+baseurl=http://downloads.naulinux.ru/pub/NauLinux/sites/QNet/7/\$basearch/RPMS/
 enabled=0
 gpgcheck=1
 gpgkey=http://downloads.naulinux.ru/pub/NauLinux/RPM-GPG-KEY-linux-ink
