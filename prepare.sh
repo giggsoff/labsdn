@@ -3,16 +3,14 @@ if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit
 fi
-cat >/etc/yum.repos.d/naulinux-extras.repo <<EOL
-[naulinux-extras]
-name=NauLinux Extras
-baseurl=http://downloads.naulinux.ru/pub/NauLinux/sites/QNet/7/\$basearch/RPMS/
-enabled=0
-gpgcheck=1
-gpgkey=http://downloads.naulinux.ru/pub/NauLinux/RPM-GPG-KEY-linux-ink
-EOL
-yum install -y nano epel-release
-yum install --enablerepo=naulinux-extras -y openvswitch mininet ryu ctapudp keyworker
+yum install -y nano epel-release wget
+wget http://downloads.naulinux.ru/pub/NauLinux/Extras/7x/RPMS/Projects/OpenFlow/openvswitch-2.5.0-2.el7.x86_64.rpm
+wget http://downloads.naulinux.ru/pub/NauLinux/Extras/7x/RPMS/Projects/OpenFlow/mininet-2.2.2-2.el7.x86_64.rpm
+wget http://downloads.naulinux.ru/pub/NauLinux/Extras/7x/RPMS/Projects/OpenFlow/python-oslo-config-1.9.3-1.el7.noarch.rpm
+wget http://downloads.naulinux.ru/pub/NauLinux/Extras/7x/RPMS/Projects/OpenFlow/ryu-4.4-1.2.el7.noarch.rpm
+wget http://downloads.naulinux.ru/pub/NauLinux/Extras/7x/RPMS/Projects/QNet/ctapudp-1.2-1.el7.x86_64.rpm
+wget http://downloads.naulinux.ru/pub/NauLinux/Extras/7x/RPMS/Projects/QNet/keyworker-1.2-1.el7.x86_64.rpm
+yum localinstall -y openvswitch-2.5.0-2.el7.x86_64.rpm mininet-2.2.2-2.el7.x86_64.rpm python-oslo-config-1.9.3-1.el7.noarch.rpm ryu-4.4-1.2.el7.noarch.rpm ctapudp-1.2-1.el7.x86_64.rpm keyworker-1.2-1.el7.x86_64.rpm
 systemctl restart openvswitch
 yum install -y python2-pip net-tools tcpdump iperf3
 pip install requests urllib3 pyOpenSSL --force --upgrade
